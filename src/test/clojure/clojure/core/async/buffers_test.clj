@@ -40,7 +40,7 @@
     (is (throws? (remove! fb)))))
 
 (deftest dropping-buffer-tests
-  (let [fb (dropping-buffer 2)]
+  (let [fb (dropping-buffer 2 nil)]
     (is (= 0 (count fb)))
 
     (add! fb :1)
@@ -63,7 +63,7 @@
     (is (throws? (remove! fb)))))
 
 (deftest sliding-buffer-tests
-  (let [fb (sliding-buffer 2)]
+  (let [fb (sliding-buffer 2 nil)]
     (is (= 0 (count fb)))
 
     (add! fb :1)
@@ -86,3 +86,25 @@
     (is (throws? (remove! fb)))))
 
 
+(deftest on-drop-callback-tests
+  (let [v (atom nil)
+        b (sliding-buffer 2 #(reset! v %))]
+    (add! b 1)
+    (is (nil? @v))
+
+    (add! b 2)
+    (is (nil? @v))
+
+    (add! b 3)
+    (is (= 1 @v)))
+
+  (let [v (atom nil)
+        b (dropping-buffer 2 #(reset! v %))]
+    (add! b 1)
+    (is (nil? @v))
+
+    (add! b 2)
+    (is (nil? @v))
+
+    (add! b 3)
+    (is (= 3 @v))))

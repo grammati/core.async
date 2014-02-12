@@ -45,17 +45,23 @@
   (buffers/fixed-buffer n))
 
 (defn dropping-buffer
-  "Returns a buffer of size n. When full, puts will complete but
-  val will be dropped (no transfer)."
-  [n]
-  (buffers/dropping-buffer n))
+  "Returns a buffer of size n. When full, puts will complete but val
+  will be dropped (no transfer). If supplied, on-drop will be called
+  with the dropped value."
+  ([n]
+     (dropping-buffer n nil))
+  ([n on-drop]
+     (buffers/dropping-buffer n on-drop)))
 
 (defn sliding-buffer
   "Returns a buffer of size n. When full, puts will complete, and be
   buffered, but oldest elements in buffer will be dropped (not
-  transferred)."
-  [n]
-  (buffers/sliding-buffer n))
+  transferred). If supplied, on-drop will be called with the dropped
+  value."
+  ([n]
+     (sliding-buffer n nil))
+  ([n on-drop]
+     (buffers/sliding-buffer n on-drop)))
 
 (defn unblocking-buffer?
   "Returns true if a channel created with buff will never block. That is to say,

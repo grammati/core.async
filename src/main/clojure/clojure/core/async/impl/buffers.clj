@@ -30,7 +30,7 @@
   (FixedBuffer. (LinkedList.) n))
 
 
-(deftype DroppingBuffer [^LinkedList buf ^long n]
+(deftype DroppingBuffer [^LinkedList buf ^long n on-drop]
   impl/UnblockingBuffer
   impl/Buffer
   (full? [this]
@@ -38,16 +38,18 @@
   (remove! [this]
     (.removeLast buf))
   (add! [this itm]
-    (when-not (= (.size buf) n)
+    (if (= (.size buf) n)
+      (when on-drop
+        (on-drop itm))
       (.addFirst buf itm)))
   clojure.lang.Counted
   (count [this]
     (.size buf)))
 
-(defn dropping-buffer [n]
-  (DroppingBuffer. (LinkedList.) n))
+(defn dropping-buffer [n on-drop]
+  (DroppingBuffer. (LinkedList.) n on-drop))
 
-(deftype SlidingBuffer [^LinkedList buf ^long n]
+(deftype SlidingBuffer [^LinkedList buf ^long n on-drop]
   impl/UnblockingBuffer
   impl/Buffer
   (full? [this]
@@ -56,11 +58,13 @@
     (.removeLast buf))
   (add! [this itm]
     (when (= (.size buf) n)
-      (impl/remove! this))
+      (let [dropped-itm (impl/remove! this)]
+        (when on-drop
+          (on-drop dropped-itm))))
     (.addFirst buf itm))
   clojure.lang.Counted
   (count [this]
     (.size buf)))
 
-(defn sliding-buffer [n]
-  (SlidingBuffer. (LinkedList.) n))
+(defn sliding-buffer [n on-drop]
+  (SlidingBuffer. (LinkedList.) n on-drop))
